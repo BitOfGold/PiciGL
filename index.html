@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="picigl.js"></script>
+    <style>
+        body {
+            background: #000;
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="test"></canvas>
+    <script>
+
+// Setup GL
+
+        var test = document.getElementById('test')
+        var W = window.innerWidth
+        var H = window.innerHeight
+        test.width = W
+        test.height = H
+        gl_init(test)
+        gl_viewport(W, H)
+        var fb = gl_framebuffer(W, H)
+
+// Setup Rendering Step
+
+        const ES3 = "#version 300 es\nprecision highp float;\n"
+
+        vs = ES3 + `
+in vec2 pos;
+in vec3 color;
+out vec3 vColor;
+
+void main(){
+    gl_Position = vec4(pos, 0., 1.);
+    vColor = color;
+}
+`
+        fs = ES3 + `
+in vec3 vColor;
+out vec4 oColor;
+
+void main() {
+    oColor = vec4(vColor, 1.);
+}
+    `;
+        //  x, y,    r, g, b
+        var vert_data = f([
+            0.0, 0.9,    1, 0, 0,
+            -0.6, -0.9,   0, 1, 0,
+            0.6, -0.9,   0, 0, 1,
+        ])
+
+        var pr = gl_program(vs, fs)
+        var loc_pos = gl_attribute('pos')
+        var loc_color = gl_attribute('color')
+        var b_vert = gl_buffer()
+        gl_update_buffer(b_vert, vert_data)
+        var vao = gl_vao()
+        gl_vaa(loc_pos, b_vert, 2, 20, 0)
+        gl_vaa(loc_color, b_vert, 3, 20, 8)
+        gl_bind_vao(null)
+
+
+// Setup Postprocess Step
+
+        pp_vs = ES3 + `
+in vec2 pos;
+out vec2 vUV;
+
+void main(){
+    gl_Position = vec4(pos, 0., 1.);
+    vUV = pos * 0.5 + 0.5;
+}
+`
+
+        pp_fs = ES3 + `
+uniform sampler2D textureSampler;
+uniform float time;
+
+in vec2 vUV;
+
+out vec4 oColor;
+
+void main() {
+    vec2 uv = vUV;
+    uv.x += 0.01 * sin(uv.y * 32.0 + time * 2.0);
+    oColor = vec4(texture(textureSampler, uv).rgb, 1.);
+}
+    `;
+
+        var pp_vert_data = f([1, 1, -1, 1, 1, -1, -1, 1, -1, -1, 1, -1])
+        var pp_pr = gl_program(pp_vs, pp_fs)
+        var pp_loc_pos = gl_attribute('pos')
+        var pp_loc_time = gl_uniform('time')
+        var pp_vert = gl_buffer()
+        gl_update_buffer(pp_vert, pp_vert_data)
+        var ppvao = gl_vao()
+        gl_vaa(pp_loc_pos, pp_vert, 2, 8, 0)
+        gl_bind_vao(null)
+
+        var time = 0.0
+        var pp_loc_tsampler = gl_uniform('textureSampler')
+
+// Render loop
+        function loop() {
+
+            // Do the rendering step
+            gl_use(pr)
+            gl_use_framebuffer(fb)
+            gl_clear()
+            gl_bind_vao(vao)
+            gl_draw_triangles(3)
+
+            // Do the postprocess step
+            gl_use(pp_pr)
+            gl_use_framebuffer(null)
+            gl_clear()
+            gl_float(pp_loc_time, time)
+            gl_bind_texture(pp_loc_tsampler, fb.t)
+            gl_bind_vao(ppvao)
+            gl_draw_triangles(6)
+            
+            time += 0.017
+            window.requestAnimationFrame(loop)
+        }
+        loop()
+
+    </script>
+</body>
+
+</html>
