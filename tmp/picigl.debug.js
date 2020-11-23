@@ -84,7 +84,7 @@ function gl_texture() {
 return gl.createTexture()
 }
 
-function gl_update_texture(texture, data, nearest = false, float = false, w=0, h=0) {
+function gl_update_texture(texture, data, nearest = false, float = false, w=0, h=0, repeat=true) {
 let ifo = float?34836:6408
 let fo = float?5126:5121
 
@@ -100,8 +100,8 @@ gl.texImage2D(3553, 0, ifo, w, h, 0, 6408, fo, data)
 }
 gl.texParameteri(3553, 10240, nearest||(float&&!gl._floatlinear) ? 9728 : 9729)
 gl.texParameteri(3553, 10241, nearest||(float&&!gl._floatlinear) ? 9728 : 9729)
-gl.texParameteri(3553, 10242, 33071)
-gl.texParameteri(3553, 10243, 33071)
+gl.texParameteri(3553, 10242, repeat ? 10497 : 33648)
+gl.texParameteri(3553, 10243, repeat ? 10497 : 33648)
 }
 
 // get uniform / attribute location
@@ -163,7 +163,7 @@ gl.enableVertexAttribArray(location)
 
 function gl_framebuffer(w, h, needsdepth=false, nearest=false, float=true) {
 var texture = gl_texture()
-gl_update_texture(texture, null, nearest, float, w, h)
+gl_update_texture(texture, null, nearest, float, w, h, false)
 
 var frameBuffer = gl.createFramebuffer()
 gl.bindFramebuffer(36160, frameBuffer)

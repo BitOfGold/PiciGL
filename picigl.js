@@ -84,7 +84,7 @@ function gl_texture() {
     return gl.createTexture()
 }
 
-function gl_update_texture(texture, data, nearest = false, float = false, w=0, h=0) {
+function gl_update_texture(texture, data, nearest = false, float = false, w=0, h=0, repeat=true) {
     let ifo = float?gl.RGBA32F:gl.RGBA
     let fo = float?gl.FLOAT:gl.UNSIGNED_BYTE
 
@@ -100,8 +100,8 @@ function gl_update_texture(texture, data, nearest = false, float = false, w=0, h
     }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, nearest||(float&&!gl._floatlinear) ? gl.NEAREST : gl.LINEAR)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, nearest||(float&&!gl._floatlinear) ? gl.NEAREST : gl.LINEAR)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, repeat ? gl.REPEAT : gl.MIRRORED_REPEAT)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, repeat ? gl.REPEAT : gl.MIRRORED_REPEAT)
 }
 
 // get uniform / attribute location
@@ -163,7 +163,7 @@ function gl_vaa(location, buffer, size = 4, stride = 0, offset = 0) {
 
 function gl_framebuffer(w, h, needsdepth=false, nearest=false, float=true) {
     var texture = gl_texture()
-    gl_update_texture(texture, null, nearest, float, w, h)
+    gl_update_texture(texture, null, nearest, float, w, h, false)
 
     var frameBuffer = gl.createFramebuffer()
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer)
