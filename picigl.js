@@ -48,9 +48,9 @@ function gl_viewport(w, h) {
 
 // make program from shader sources (vertex, fragment)
 function gl_program(vs, fs) {
-    p = gl.createProgram()
+    let p = gl.createProgram()
 
-    _glcs = (p, s, t) => {
+    function _glcs(p, s, t) {
         var sh = gl.createShader(t ? gl.FRAGMENT_SHADER : gl.VERTEX_SHADER)
         gl.shaderSource(sh, s)
         gl.compileShader(sh)
